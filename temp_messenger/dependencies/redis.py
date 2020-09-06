@@ -1,5 +1,6 @@
 from redis import StrictRedis
 from nameko.extensions import DependencyProvider
+from uuid import uuid4
 
 
 class RedisClient:
@@ -13,6 +14,12 @@ class RedisClient:
             raise RedisError('Message not found: {}'.format(message_id))
 
         return message
+
+    def save_message(self, message):
+        message_id = uuid4().hex
+        self.redis.set(message_id, message)
+
+        return message_id
 
 
 class RedisError(Exception):
