@@ -8,7 +8,7 @@ def test_konnichiwa():
     assert result == 'Konnichiwa!'
 
 
-def test_root(web_session, web_config, container_factory):
+def test_root_http(web_session, web_config, container_factory):
     web_config['AMQP_URI'] = 'pyamqp://guest@localhost'
 
     web_server = container_factory(WebServer, web_config)
