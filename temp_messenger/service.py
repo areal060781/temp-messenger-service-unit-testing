@@ -1,4 +1,5 @@
 import json
+from operator import itemgetter
 
 from nameko.rpc import rpc, RpcProxy
 from nameko.web.handlers import http
@@ -24,7 +25,8 @@ class MessageService:
     @rpc
     def get_all_messages(self):
         messages = self.message_store.get_all_messages()
-        return messages
+        sorted_messages = sort_messages_by_expiry(messages)
+        return sorted_messages
 
 
 class WebServer:
@@ -38,6 +40,11 @@ class WebServer:
         rendered_template = self.templates.render_home(messages)
         html_response = create_html_response(rendered_template)
         return html_response
+
+    @http('GET', '/messages')
+    def get_messages(self, request):
+        messages = self.message_service.get_all_messages()
+        return create_json_response(messages)
 
     @http('POST', '/messages')
     def post_message(self, request):
@@ -61,3 +68,17 @@ class WebServer:
 def create_html_response(content):
     headers = {'Content-Type': 'text/html'}
     return Response(content, status=200, headers=headers)
+
+
+def sort_messages_by_expiry(messages, reverse=False):
+    return sorted(
+        messages,
+        key=itemgetter('expires_in'),
+        reverse=reverse
+    )
+
+
+def create_json_response(content):
+    headers = {'Content-Type': 'application/json'}
+    json_data = json.dumps(content)
+    return Response(json_data, status=200, headers=headers)
