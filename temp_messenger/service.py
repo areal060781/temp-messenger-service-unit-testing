@@ -1,3 +1,5 @@
+import json
+
 from nameko.rpc import rpc, RpcProxy
 from nameko.web.handlers import http
 from werkzeug.wrappers import Response
@@ -36,6 +38,24 @@ class WebServer:
         rendered_template = self.templates.render_home(messages)
         html_response = create_html_response(rendered_template)
         return html_response
+
+    @http('POST', '/messages')
+    def post_message(self, request):
+        data_as_text = request.get_data(as_text=True)
+
+        try:
+            data = json.loads(data_as_text)
+        except json.JSONDecodeError:
+            return 400, 'JSON payload expected'
+
+        try:
+            message = data['message']
+        except KeyError:
+            return 400, 'No message given'
+
+        self.message_service.save_message(message)
+
+        return 204, ''
 
 
 def create_html_response(content):
