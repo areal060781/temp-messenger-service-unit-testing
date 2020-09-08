@@ -14,6 +14,7 @@ jinja2 = "*"
 sqlalchemy = "*"
 psycopg2-binary = "*"
 nameko-sqlalchemy = "*"
+bcrypt = "*"
 
 [requires]
 python_version = "3.8"

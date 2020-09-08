@@ -1,7 +1,10 @@
-from sqlalchemy import Column, Integer, Unicode
+import bcrypt
+
+from sqlalchemy import Column, Integer, LargeBinary, Unicode
 from sqlalchemy.ext.declarative import declarative_base
 from nameko_sqlalchemy import DatabaseSession
 
+HASH_WORK_FACTOR = 15
 Base = declarative_base()
 
 
@@ -12,7 +15,7 @@ class User(Base):
     first_name = Column(Unicode(length=128))
     last_name = Column(Unicode(length=128))
     email = Column(Unicode(length=256), unique=True)
-    password = Column(Unicode(length=512))
+    password = Column(LargeBinary())
 
 
 class UserWrapper:
@@ -20,6 +23,10 @@ class UserWrapper:
         self.session = session
 
     def create(self, **kwargs):
+        plain_text_password= kwargs['password']
+        hashed_password = hash_password(plain_text_password)
+        kwargs.update(password=hashed_password)
+
         user = User(**kwargs)
         self.session.add(user)
         self.session.commit()
@@ -32,3 +39,10 @@ class UserStore(DatabaseSession):
     def get_dependency(self, worker_ctx):
         database_session = super().get_dependency(worker_ctx)
         return UserWrapper(session=database_session)
+
+
+def hash_password(plain_text_password):
+    salt = bcrypt.gensalt(rounds=HASH_WORK_FACTOR)
+    encoded_password = plain_text_password.encode()
+
+    return bcrypt.hashpw(encoded_password, salt)
