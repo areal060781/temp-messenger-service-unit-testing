@@ -11,6 +11,9 @@ pbr = "*"
 redis = "*"
 nameko = "*"
 jinja2 = "*"
+sqlalchemy = "*"
+psycopg2-binary = "*"
+nameko-sqlalchemy = "*"
 
 [requires]
 python_version = "3.8"
