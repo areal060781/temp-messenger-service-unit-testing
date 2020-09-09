@@ -28,7 +28,8 @@ def home():
         'home.html', authenticated=authenticated
     )
 
-@app.route('logout')
+
+@app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home'))
@@ -84,10 +85,41 @@ class SignUpView(MethodView):
                 app.logger.error(message)
                 return render_template('sign_up.html', error_message=message)
 
-            session['authenticated'] = True
-            session['email'] = email
+        session['authenticated'] = True
+        session['email'] = email
 
+        return redirect(url_for('home'))
+
+
+class LoginView(MethodView):
+    def get(self):
+        if user_authenticated():
             return redirect(url_for('home'))
+        else:
+            return render_template('login.html')
+
+    def post(self):
+        email = request.form['email']
+        password = request.form['password']
+
+        with ClusterRpcProxy(config) as cluster_rpc:
+            try:
+                cluster_rpc.user_service.authenticate_user(
+                    email=email,
+                    password=password,
+                )
+            except RemoteError as err:
+                app.logger.error(
+                    'Bad login for %s - %s', email, str(err)
+                )
+                return render_template(
+                    'login.html', login_error=True
+                )
+
+        session['authenticated'] = True
+        session['email'] = email
+
+        return redirect(url_for('home'))
 
 
 def user_authenticated():
@@ -100,4 +132,8 @@ app.add_url_rule(
 
 app.add_url_rule(
     '/sign_up', view_func=SignUpView.as_view('sign_up')
+)
+
+app.add_url_rule(
+    '/login', view_func=LoginView.as_view('login')
 )

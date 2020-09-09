@@ -51,7 +51,7 @@ class UserWrapper:
         try:
             user = query.filter_by(email=email).one()
         except NoResultFound:
-            message = 'User not found {}'.format(email)
+            message = 'User not found - {}'.format(email)
             raise UserNotFound(message)
 
         return user
@@ -61,7 +61,9 @@ class UserWrapper:
 
         if not bcrypt.checkpw(password.encode(), user.password):
             message = 'Incorrect password for {}'.format(email)
-        raise AuthenticationError(message)
+            raise AuthenticationError(message)
+
+        return user
 
 
 class UserStore(DatabaseSession):
