@@ -3,6 +3,7 @@ import bcrypt
 from sqlalchemy import Column, Integer, LargeBinary, Unicode
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm.exc import NoResultFound
 from nameko_sqlalchemy import DatabaseSession
 
 HASH_WORK_FACTOR = 15
@@ -44,6 +45,24 @@ class UserWrapper:
             else:
                 raise CreateUserError(error_message)
 
+    def get(self, email):
+        query = self.session.query(User)
+
+        try:
+            user = query.filter_by(email=email).one()
+        except NoResultFound:
+            message = 'User not found {}'.format(email)
+            raise UserNotFound(message)
+
+        return user
+
+    def authenticate(self, email, password):
+        user = self.get(email)
+
+        if not bcrypt.checkpw(password.encode(), user.password):
+            message = 'Incorrect password for {}'.format(email)
+        raise AuthenticationError(message)
+
 
 class UserStore(DatabaseSession):
     def __init__(self):
@@ -59,6 +78,14 @@ class CreateUserError(Exception):
 
 
 class UserAlreadyExists(CreateUserError):
+    pass
+
+
+class UserNotFound(Exception):
+    pass
+
+
+class AuthenticationError(Exception):
     pass
 
 
