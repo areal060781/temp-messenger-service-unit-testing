@@ -11,8 +11,8 @@ class MessageService:
         return self.message_store.get_message(message_id)
 
     @rpc
-    def save_message(self, message):
-        message_id = self.message_store.save_message(message)
+    def save_message(self, email, message):
+        message_id = self.message_store.save_message(email, message)
         return message_id
 
     @rpc

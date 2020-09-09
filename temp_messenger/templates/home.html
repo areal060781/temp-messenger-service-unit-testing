@@ -64,7 +64,7 @@
         } else {
           $.each(messages, function(index, value) {
             var message = $(value.message).text() || value.message;
-            messageList.push('<p>' + message + '</p>');
+            messageList.push('<p>' + value.email + ': ' + message + '</p>');
           });
           $messageContainer.html(messageList);
         }

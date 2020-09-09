@@ -1,13 +1,30 @@
 import bcrypt
 
+from nameko_sqlalchemy import DatabaseSession
 from sqlalchemy import Column, Integer, LargeBinary, Unicode
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
-from nameko_sqlalchemy import DatabaseSession
+from sqlalchemy.exc import IntegrityError
+
 
 HASH_WORK_FACTOR = 15
 Base = declarative_base()
+
+
+class CreateUserError(Exception):
+    pass
+
+
+class UserAlreadyExists(CreateUserError):
+    pass
+
+
+class UserNotFound(Exception):
+    pass
+
+
+class AuthenticationError(Exception):
+    pass
 
 
 class User(Base):
@@ -21,6 +38,7 @@ class User(Base):
 
 
 class UserWrapper:
+
     def __init__(self, session):
         self.session = session
 
@@ -67,28 +85,13 @@ class UserWrapper:
 
 
 class UserStore(DatabaseSession):
+
     def __init__(self):
         super().__init__(Base)
 
     def get_dependency(self, worker_ctx):
         database_session = super().get_dependency(worker_ctx)
         return UserWrapper(session=database_session)
-
-
-class CreateUserError(Exception):
-    pass
-
-
-class UserAlreadyExists(CreateUserError):
-    pass
-
-
-class UserNotFound(Exception):
-    pass
-
-
-class AuthenticationError(Exception):
-    pass
 
 
 def hash_password(plain_text_password):
