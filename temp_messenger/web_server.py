@@ -28,6 +28,11 @@ def home():
         'home.html', authenticated=authenticated
     )
 
+@app.route('logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
+
 
 class MessageAPI(MethodView):
     def get(self):
