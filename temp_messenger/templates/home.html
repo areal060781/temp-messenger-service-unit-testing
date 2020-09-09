@@ -7,10 +7,14 @@
 <body>
 <div id="messageContainer"></div>
 
+{% if authenticated %}
 <form action="/messages" id="postMessage">
     <input type="text" name="message" placeholder="Post message">
     <input type="submit" value="Post">
-  </form>
+</form>
+{% else %}
+<p><a href="/sign_up">Sign up</a></p>
+{% endif %}
 
 <script>
     $( "#postMessage" ).submit(function(event) {
@@ -61,6 +65,7 @@
           $messageContainer.html(messageList);
         }
     }
+
 </script>
 </body>
 </html>
